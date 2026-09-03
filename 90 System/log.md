@@ -1038,3 +1038,65 @@
 - 新增 [[PPT diagram workflow]]（90 System 操作文档）：pptxgenjs + PowerPoint COM 渲染 QA 五步循环、负 extent 陷阱（PowerPoint 报 0x80070570）、validate.py 中文 locale 假阳、风格约定（白底淡彩/琥珀=待建）、生成器索引。
 - 生成器脚本入库：`90 System/scripts/pptx/gen_embodied_agent_arch.js`（一图一脚本，保证可重生成）。
 - 同步写入 Claude 持久记忆三条（工具链 / 负 extent 坑 / 交付与"先提取用户手改再重生成"约定）。
+
+## [2026-09-01] synthesis | 五方向 × 三档仿真评测矩阵（方向优先重排）
+
+- 应 Ethan 要求，把 [[Embodied simulation benchmark suite for systems optimization]]（v0.7）的"基准优先"组织重排为**方向优先视图**：新建 [[Embodied sim eval - three-tier matrix by research direction]]，逐方向罗列开源与私有（ESAS）评测条目。
+- **分档原则**：一档·基础保全（离线筛查 + 饱和区 reference ≳90%，打回制）/ 二档·敏感判别（判别区 20–80% + mild/medium 扰动，Nam–Tango 配对非劣）/ 三档·挑战压力（地板区 <20%、hard 档、多轴组合、非确定长程，不设门槛单独报告）。成绩区间是启发式、功能优先——Canonical-Heldout 处高分区仍归二档（稀疏不一致对由 exact/Bayesian 兜底），已在 §1 显式说明。
+- 两个正交关系入档：**档位（测什么）⟂ 流水线站位（何时/谁/判多严）**，Sealed Holdout = 二档内容的发布级重跑；**一档全开源**（私有集不做冒烟，高频接触 ESAS 违反治理）。
+- 主页 §5 与 Related 加双向链接；**顺带修复 index.md 漏项**——主评测方案页此前从未入索引，本次与新页一并补入。
+- 待冻结项继承主页 §6：mild/medium 强度校准、Precision-Core 名单、MuJoCo 探针集、Agent composite 验收触发条件，另新增一档打回阈值（R0 容差、smoke 掉分幅度）。
+
+## [2026-09-01]（补）| R0 打回阈值校准协议入档
+
+- 起因：Ethan 问"动作分歧多大算异常"——查证 [[VLA quantization]] 确认**文献无公认阈值**（四篇 VLA 量化工作只报成功率，Action-MSE 仅作敏感度排序信号），且分歧→成功率受闭环误差复合与任务相位调制、本质非线性，绝对阈值不成立。
+- 在 [[Embodied sim eval - three-tier matrix by research direction]] 新增 §9.1：**三条参照带**（噪声地板 = reference 自分歧 / 良性差异带 = 已验证等价的实现变体互比 / 坏版本带 = 故意做坏的版本含喂错翻转约定）夹出相对阈值；判别力检验内建（坏版本与良性带重叠 ⇒ R0 对该故障不敏感，拦截职责后移闭环）；统计看尾部（逐维归一化 P95/P99/max）；**安全门绝对阈值是唯一例外**（本体限值 + norm stats P99.9，可立即冻结）；阈值只用于打回、不用于通过。
+- 三条带测量与主页 §4"评估团队第一动作"（reference 方差/自翻转率）并入同一校准 sprint。
+- [[Real-robot eval bench - task suite design and setup checklist]] R0 节加一行指针。
+
+## [2026-09-01]（补2）| 矩阵笔记移除开发常识类条目
+
+- Ethan 反馈：PR smoke 这类开发团队自然会做的小冒烟不需要入档。从 [[Embodied sim eval - three-tier matrix by research direction]] 移除：PR smoke（推理优化）、框架单测 + LIBERO-10 smoke（Agent）、固定 policy 冒烟（RL）；"trace 重放 smoke"改名"trace 重放筛查"（它是需定容差的设计机制，保留）。
+- 取舍原则本身写入 §1 第一条补充：**一档条目准入 = 需要专门设计/校准/约定**（R0 阈值、探针、trace 容差、确定性容差、冻结协议的饱和全量），开发常识不入档。
+- 主页 [[Embodied simulation benchmark suite for systems optimization]] §4/§5 流水线中的 PR smoke 未动（那里描述的是站位节奏，非评测集清单）。
+
+## [2026-09-01]（补3）| 修正矩阵笔记 "Plus hard" 表述
+
+- Ethan 质疑"LIBERO-Plus 有 Hard 子集吗"——**没有**：Plus 是 7 维 21 子维 × 10,030 实例的平铺结构，唯一难度概念 L1–L5 是四个旧模型（不含 π0.5）成败事后分层的经验标签（主页 §2.2 早有记录，矩阵笔记引用时嫁接了 ESAS OR 私有 hard 档的概念，属转写失真）。
+- [[Embodied sim eval - three-tier matrix by research direction]] 三处修正：推理优化三档改为 **"Plus 低分子维抽样"**（依据团队 reference 逐子维成功率，L4–L5 至多作粗筛候选）；渲染三档总览格改回 OR hard/Compound（私有）。"hard 档"仅保留在 ESAS OR（自校准）与 RoboTwin randomized（官方 Hard）两处合法出处。
+
+## [2026-09-01]（补4）| Plus 判别子集升入推理优化二档
+
+- Ethan 质疑推理优化二档为何不排 LIBERO-Plus（π0.5 在部分 Plus 子维的成功率可能高于 Atomic-Seen 的 39.6%）。复盘结论：原映射（继承主页 §5）按"主敏感面"把 Plus 整块分给渲染方向，**混淆了归因与覆盖**——配对设计下归因不是问题（只改后端，差异全归 candidate），真正的问题是覆盖：量化误差与输入分布相关（PTQ 敏感度分析/rotation 校准均在校准集分布上离线完成，见 [[VLA quantization]]），观测偏移把 activation 推到校准集外，clean Canonical 测不到该失效面。
+- [[Embodied sim eval - three-tier matrix by research direction]] 修改：推理优化二档新增 **Plus-Sensitive**（校准后按 reference 逐子维成功率选 20–80% 判别区子维；与渲染共用同一份 π0.5-Plus reference 跑分）；三档相应改为 **Plus 地板子维**（<20% 只查崩塌），两档按判别区边界切分。§9 待冻结项 1 加入 Plus-Sensitive 名单。
+- 边界保持：ESAS 验收面不变（Canonical-Heldout + Precision-Core），Plus-Sensitive 属开源自报层；π0.5-Plus 无官方成绩，名单待 reference 跑分后冻结。
+
+## [2026-09-01]（补5）| 澄清：开发常跑的地板集不因此升一档
+
+- Ethan 提出 Agent 开发中已常测 PRO swap 轴与 RoboCasa，问是否可入一档。结论：**不入**——swap（Position，π0.5 0.08–0.38）与 RoboCasa Composite（7.1/1.2）均在地板区，打回制的前提"坏了一眼可见"在地板区结构性不成立（小 n 下退化与噪声不可分，检测低基线崩塌反而需要大样本）；一档偏爱饱和区是功效结构问题，非品味。
+- [[Embodied sim eval - three-tier matrix by research direction]] §1"档位⟂站位"补充反向应用：开发日常高频跑二/三档小样本作趋势观察合理且应该，但判据与归档不变；地板集的正路是升档迁移（Composite 抬进判别区 → ESAS 验收集实例化）。
+- 另记：RoboCasa Atomic 对 Agent 方向意义有限——单步任务几乎不经过规划层，Agent 框架不动底层 policy。
+
+## [2026-09-01]（补6）| 修正：Atomic-Seen 对 harness 型 Agent 框架有效，入二档
+
+- 撤回补5 末行"Atomic 对 Agent 方向意义有限"——该判断隐含假设 Agent 框架是纯规划器。Ethan 澄清团队框架是**每调用包一层的 harness**（staging 改善 VLA 初始状态、失败记忆与改善机制），即 [[Harness granularity]] 的"挂载粒度=执行器决策粒度"一路：一个 atomic 任务恰是一个完整 harness 周期（stage→invoke→verify→recover），无长程复合干扰，反而是单周期 harness 质量最干净的信号。
+- [[Embodied sim eval - three-tier matrix by research direction]] Agent 二档新增 **Atomic-Seen harness-on/off 配对**（三态：rails-off 裸 VLA / harness 旧版 / 新版；rails-off 即基线出自 [[Harness development base - JiuwenSymbiosis selection and build plan]]）。观察量含每成功一次的调用数/时间开销（防重试买成功率）。两个协议点：horizon 冻结 1.5×、staging/重试步数属被测成本；跨 episode 持久记忆破坏 episode 独立性，默认评测态 per-episode 记忆复位、跨 episode 记忆另设声明 suite。
+- 归档仍为二档非一档：39.6% 判别区适合配对判别，打回制的饱和区前提不满足。
+
+## [2026-09-01]（补7）| LIBERO 侧物理归因缺口：按需 trace 重放 + 探针集配置覆盖
+
+- Ethan 问是否需要 ESAS-LIBERO Physics-Core。拆解：**机制类型**上不需要（主页 §3.4 选址理由仍成立——LIBERO 接触稀疏，分歧信号是 RoboCasa 的真子集，低信号常驻布点浪费算力）；但**配置栈**上存在真实缺口——两家 solver/integrator/timestep/controller 指纹不同（主页早记"同一引擎名 ≠ 同一物理栈"），引擎改动可能只在 LIBERO 配置路径出问题，而 LIBERO 侧此前只有闭环、无隔离层可归因。
+- 补法不建常驻 Physics-Core，两条便宜手段入 [[Embodied sim eval - three-tier matrix by research direction]]：①物理方向二档新增 **LIBERO trace 重放（按需诊断，不常驻、不设门槛）**——harness 引擎通用，顺带录 LIBERO trace 冻结备用，仅在"LIBERO-40 闭环回退 + RoboCasa 物理层干净"场景启用；②§9 探针集待冻结项加硬需求：覆盖两家配置指纹，配置路径覆盖由组件层系统性解决。
+
+## [2026-09-01]（补8）| LIBERO trace 重放从按需诊断升入一档常驻
+
+- Ethan 追问：既然轻量为何不常驻一档。复盘承认补7 的"按需"定位保守错位——**"低信号处不重复布点"（主页 §3.4）针对的是常驻闭环评测基础设施的算力投放，不适用于不跑模型的 trace 重放**；重放的真实约束是容差校准（按配置栈各做自重放噪声带）与误报分诊，均很小。既已决定录 trace 冻结，"录而不常跑"等于放弃每提交的配置覆盖。
+- [[Embodied sim eval - three-tier matrix by research direction]] 修改：一档条目改为 **trace 重放筛查（RoboCasa + LIBERO 双配置栈）**——RoboCasa trace 管机制覆盖，LIBERO trace 管第二套配置指纹；LIBERO trace 按接触/铰接密度选任务（自由空间轨迹不敏感，不选），兼任闭环回退的归因工具。二档撤销"按需诊断"条目；§9 项 2 改为双栈分别自重放校准（方法同 §9.1）。
+
+## [2026-09-01]（补9）| 矩阵笔记全文复审 → v0.2
+
+- Ethan 切换 Fable 5.1 后要求重审。逐行复审 [[Embodied sim eval - three-tier matrix by research direction]]，修 12 处，三类：
+  - **违反自定规则 / 内部矛盾**：①chunk 写成 "10/5""50/5""50/50"，违反 §8 自己规定的三元组必须写全，改为 10/10/5、10/50/5、10/50/50；②"不一致率 ψ 高 → 功效高"表述错误——配对方差 ≈ ψ/n，ψ 高反而增大所需 n，正确论证是非饱和区同等损伤表现为更大效应量；**主页 §3.4 同一处一并修正**；③R0 三处误标【开源】——R0 用团队自录真机数据，改【自有数据】，§1 "一档全开源"改为"不依赖 ESAS 隐藏集、对开发透明"。
+  - **事实精度**：RoboTwin 70.7/46.0 补 recipe 警告（差近 30 点，重建后须复核仍在判别区）；Plus-Sensitive 功效改为"2pp 级、≳3.7k 对达 1pp"；RL 三档 BEHAVIOR 加条件（仅当框架接入 OmniGibson/Isaac 栈）；渲染二档 Plus 注明七轴中 Robot/Language 不归因渲染。
+  - **结构一致性**：§2 推理优化二档格括号重写；§1 列表断行、一档"数据集特征"覆盖 trace/探针；各方向子标题统一带判据后缀；探针/数值稳定性/图像层指标补【自建】标签；Agent 观察量注明 predicate progress 仅 LIBERO 侧可插桩。
+- 版本升 **v0.2**，头部记修订要点。

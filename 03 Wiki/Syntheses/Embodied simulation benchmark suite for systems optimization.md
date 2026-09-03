@@ -86,7 +86,7 @@
 - **π0.5 参考成绩（截至 2026-08-18）**：2026 届**无公开 baseline 分数**——官方 π0.5 / GR00T N1.7 是"参考训练+评测管线"而非有成绩的条目，[leaderboard](https://huggingface.co/spaces/behavior-1k/2026-challenge-leaderboard) 为 0 提交（截稿 10/16、公布 11/04）。最近锚点是 2025 届（50 任务）：冠军（π0.5 基座）Q-score **0.2599**、完整任务成功率 **12.4%**（[方案](https://github.com/IliaLarchenko/behavior-1k-solution)）；NVIDIA Comet（π0.5 基座）0.2514，赛后改进版在公开实例 0.345（[arXiv:2512.10071](https://arxiv.org/abs/2512.10071)）。π0.5 级系统在此量级任务上处于深地板区间。
 - **权重与训练**：官方只放出 1/100 任务（`turning_on_radio`）的微调 checkpoint；其余需按官方管线自训——`pi05_base` + [openpi behavior 分支](https://github.com/wensi-ai/openpi)，R1Pro 本体，**action horizon 32**（又一个 checkpoint 级 horizon，区别于 LIBERO 10 / RoboCasa 50），逐任务微调。训练数据全开放：20,000 条 JoyLo 遥操演示，3.27 TB，MIT（[dataset](https://huggingface.co/datasets/behavior-1k/2026-challenge-demos)）。
 - **本地运行约束**：需 RT-core GPU（Isaac Sim 5.1 **不支持 A100/H100 渲染**），官方参考机为单张 RTX 4090 + 128 GB RAM + Ubuntu 22.04；挑战规格观测（720×720 RGB-D）下仿真 **~13.5 FPS**，1,000 episodes 单机约 2–3 周（2025 冠军实测 500 episodes 单机 ~10 天，20×4090 并行 <2 天）；资产包（31.5 GB 加密）为 **non-commercial academic EULA**；官方明确声明**仿真器非确定**——无法做 ESAS 式逐 episode 严格配对，只能多 rollout 平均。
-- **使用边界**：因成本、非确定性与深地板效应，定位为**发布级 Agent 能力压力评测**，不承担日常回归与非劣性验收；日常长程回归由 RoboCasa365 Composite 承担（有公开 π0.5/GR00T 分数、MuJoCo 便宜、可配对）。内部 `BEHAVIOR-Core-20` 按演示长度、predicate 数、是否导航/搜索/可恢复失败分层抽样（Core-20 × 10 实例 = 200 episodes ≈ 单机 4–5 天，可行）；Full-100 仅重大发布跑。Agent"大脑"层（目标解释、子目标分解、动作排序）可另用 [EAI](https://embodied-agent-interface.github.io/)（Embodied Agent Interface）做符号层诊断——它复用 BEHAVIOR 任务定义，可与执行层结果两级归因，成本极低。
+- **使用边界**：因成本、非确定性与深地板效应，定位为**发布级 Agent 能力压力评测**，不承担日常回归与非劣性验收；日常长程回归由 RoboCasa365 Composite 承担（有公开 π0.5/GR00T 分数、MuJoCo 便宜、可配对）。内部 `BEHAVIOR-Core-20` 按演示长度、predicate 数、是否导航/搜索/可恢复失败分层抽样（Core-20 × 10 实例 = 200 episodes ≈ 单机 4–5 天，可行）；Full-100 仅重大发布跑。Agent"大脑"层（目标解释、子目标分解、动作排序、状态转移建模四模块）可另用 [EAI](https://embodied-agent-interface.github.io/)（Embodied Agent Interface）做符号层诊断——它复用 BEHAVIOR 任务定义，可与执行层结果两级归因，成本极低。
 
 ### 2.7 跨 benchmark 的 π0.5 运行契约要点
 
@@ -172,7 +172,7 @@ RoboCasa Composite（Seen/Unseen）不入 ESAS：地板区、不设门槛、任�
 - `Precision-Core`：候选池不限于公开的 Atomic-Seen 18——扩到 Human300 训练分布覆盖的全部 atomic 任务（全库 65 个 atomic，公开榜只用 18 个；可用数量待核对 Human300 构成），跑 reference 校准后保留成功率约 20%–80%、重复稳定、任务族不重复的任务。**任务选择本身也是隐藏项**：评估团队不公开选了哪些任务，与 episode 级隐藏叠加，无需扰动生成即获得真正私有性。
 - `Physics-Core`：物理引擎优化不能只用闭环 π0.5，同一批任务固定三种执行方式——①**固定 action trace 重放**（隔离引擎，比状态轨迹/接触/穿透/约束误差）、②**scripted/oracle controller**（排除视觉与推理干扰）、③**π0.5 闭环**（最终系统影响）。trace 重放放在 RoboCasa 而非 LIBERO 的理由：重放不跑模型，LIBERO 的官方 π0.5 基线优势用不上，其价值只取决于任务物理内容——两家同为 MuJoCo 栈，LIBERO 接触稀疏（分歧信号是 RoboCasa fixture/堆叠/铰接任务的真子集），在信号密度低处重复布点只浪费算力。
 - "同一引擎名"不等于"同一物理栈"：必须同时冻结 RoboCasa/robosuite/MuJoCo/资产版本与 integrator、timestep、solver、contact、controller。
-- **设计逻辑**：除 Physics-Core 外三个 profile 均为 π0.5 闭环的模型在环评测；Precision-Core 因 atomic 任务处于 ~40% 非饱和区间，成败翻转空间远大于 ~97% 的 LIBERO Canonical，是 MuJoCo 栈上检测小回退的主力（不一致率 ψ 高 → 同样本量功效高，见 §4）。ESAS-RoboCasa **不做扰动生成**——任务定义全部来自官方，私有性在任务选择层（Precision-Core 不公开任务名单）+ episode 实例层（隐藏初始状态/seed/manifest + 配对 + 聚合反馈）：扰动归因已由 ESAS-LIBERO 复用 Plus/PRO 成熟生成器承载，而 RoboCasa 的独特价值（非饱和难度、2,500 厨房与不相交 split 的原生 OOD、composite 长程、MuJoCo 物理）全部原生自带、无需生成。
+- **设计逻辑**：除 Physics-Core 外三个 profile 均为 π0.5 闭环的模型在环评测；Precision-Core 因 atomic 任务处于 ~40% 非饱和区间，成败翻转空间远大于 ~97% 的 LIBERO Canonical，是 MuJoCo 栈上检测小回退的主力（非饱和区同等损伤表现为更多翻转即更大效应量，更易检出；注意配对方差 ≈ ψ/n，ψ 本身升高并不降低所需样本量，见 §4）。ESAS-RoboCasa **不做扰动生成**——任务定义全部来自官方，私有性在任务选择层（Precision-Core 不公开任务名单）+ episode 实例层（隐藏初始状态/seed/manifest + 配对 + 聚合反馈）：扰动归因已由 ESAS-LIBERO 复用 Plus/PRO 成熟生成器承载，而 RoboCasa 的独特价值（非饱和难度、2,500 厨房与不相交 split 的原生 OOD、composite 长程、MuJoCo 物理）全部原生自带、无需生成。
 - **两个 profile 的 ESAS 正当性并不同级**（能力信号本身开发团队跑公开集就能获得，ESAS 的存在理由是验收完整性，不是测量）：**Precision-Core 必须在 ESAS**——公开协议 seed 固定为 7、episode 集完全公开，反复迭代等于对同一批实例做适应性过拟合（公共榜效应），隐藏任务+实例是唯一解药，且正式非劣门槛不得建立在被验收方自报数字上（职责分离）；**Scene-Object-Heldout 实为审计职能**——split 公开、episode 隐藏保护有限，ESAS 复跑的价值是查训练污染与统一 harness（horizon、翻转约定等自报差异的现实教训见 §2.5/§2.3），不应称作私有验收集。
 
 ### 3.5 评估挡位与数据分层
@@ -244,6 +244,8 @@ Reference 与 candidate 必须使用完全相同的：
 **顺序扩样控制算力**：先 100 rollouts/task（或全量固定实例 ×1），明确通过或失败即停；仅临界项扩到 300、再到 500。若 50 任务 × 4 profile × 500 次全跑，单模型 10 万 episodes、成对 20 万——仿真便宜不等于可以忽略统计设计。日常节奏：PR smoke（LIBERO 每套件 2 任务 × 10）→ 开发日常回归（公开全量 × 10–100）→ 评估预检（ESAS 各 profile × 100 配对）→ 正式发布（公开全量 + Private Validation + Sealed Holdout）。
 
 ## 5. 各研究方向的评测映射
+
+> 方向优先的三档视图（一档基础保全 / 二档敏感判别 / 三档挑战压力，逐方向罗列开源与私有条目）见 [[Embodied sim eval - three-tier matrix by research direction]]；本节保留"基准 × 方向"映射与流水线站位。
 
 | 研究方向 | 开发团队公开自评 | 评估团队私有验收 | 主要观察量 |
 |---|---|---|---|
@@ -400,6 +402,7 @@ simulator_config_hash / manifest_version
 
 ## Related
 
+- [[Embodied sim eval - three-tier matrix by research direction]] — 本页的方向优先重排：五方向 × 三档（基础保全 / 敏感判别 / 挑战压力）
 - [[Real-robot evaluation]] — 真机评测的任务、条件、统计与指标分层
 - [[Real-robot eval bench - task suite design and setup checklist]] — 团队真机任务集草案
 - [[VLA quantization]] — π0.5 等 VLA 推理优化的误差来源

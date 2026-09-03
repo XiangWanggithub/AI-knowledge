@@ -61,6 +61,7 @@
 - 物理引擎：real-log action trace 双引擎重放（对应仿真层 Physics-Core 的 trace 重放，但以真实轨迹为 ground truth）。
 - 渲染/3DGS：真实图像 vs 孪生场景重渲染的图像指标 + 动作分歧。
 - **R0 数据集本身必须 manifest 化冻结**：episode 清单、任务覆盖、采集时段、hash——版本化扩充，否则 R0 结论跨提交不可比（真实数据也有分布漂移：物体磨损、光照季节性、相机微移）。
+- **打回阈值不拍绝对数**：动作分歧容差用"噪声地板 / 良性差异带 / 坏版本带"三条参照带夹出，安全门部分（本体速度/力矩限值、norm stats P99.9）用物理依据的绝对数——校准协议见 [[Embodied sim eval - three-tier matrix by research direction]] §9.1。
 - **R0 做厚是整个真机设计的第一杠杆**：它把大部分问题拦在机器人时间之前。
 
 ### R1 — 真机 A/B 层（机器人在环，无微调）
