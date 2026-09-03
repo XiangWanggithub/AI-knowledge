@@ -88,7 +88,7 @@
 - [[Keypoint-based Manipulation]] — 以语义 3D 关键点表示场景 + 约束定义操控任务（ReKep 范式）
 - [[Constrained Optimization for Robot Control]] — 把任务写成目标+约束再求解动作（vs 学习策略）；ReKep 的"执行半"
 - [[VLA - Vision-Language-Action Models]] — **base concept / hub** for the VLA family: definition, boundaries (vs WAM / motion controller), architecture axes (actor-vs-encoder, Paradigm A/B), and the vault's VLA instances
-- [[World-Action Models]] — WAM 范式：视频生成 backbone + 动作预测，架构演进与路线对比
+- [[World-Action Models]] — WAM 范式：视频生成 backbone + 动作预测，架构演进与路线对比；第五代一节附 PHR-VLA（纯辅助损失、无世界模型的最低成本端点，含未来监督信号设计的五组消融，未建源笔记）
 - [[JEPA]] — Joint-Embedding Predictive Architecture(LeCun):**隐空间、非生成**的世界模型框架;谱系 I-JEPA→V-JEPA→**V-JEPA 2 / V-JEPA 2-AC**(Meta)/ DINO-WM / PLDM / [[Maes et al. - LeWorldModel (LeWM) Stable End-to-End JEPA from Pixels|LeWM]] + 防塌缩谱系(EMA/VICReg/SIGReg);JEPA vs 生成式对照。世界模型趋势讨论底座
 - [[Embodied Brain Models]] — 大脑模型的部署驱动定义（云=大脑、端=小脑）、三个主流流派（LLM/VLM-as-brain, Predictive Spatial Models, VLA 特殊定位）、接口/方法学正交维度、前瞻预判（骨架页）
 - [[Embodied Cerebellum Models]] — **大脑页的对位页**：小脑（端侧）模型——多速率控制栈（50Hz VLA→1kHz 控制→40kHz 伺服）、小脑四种来源、边缘部署技术（量化/蒸馏/线性注意力/AOT/chunking）、可靠性"脊髓"层（骨架页）

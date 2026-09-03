@@ -47,6 +47,10 @@ World-Action Models（WAM）是一类从预训练视频生成 backbone 初始化
 - **但第五代内部已分两支**(latent 的用法不同):
   - **隐子目标支**(LaWAM):复用 latent-action-model 的 decoder,**显式产出"未来观测特征"**当子目标,喂给动作专家。
   - **隐推理支**(Being-H0.7):在多模态上下文与带噪动作之间插一组 **learnable latent query** 当推理接口;训练时用**未来知情的 posterior 分支**(未来观测经冻结 ViT + Perceiver resampler 压成 K 个嵌入替换 query)与 prior 分支做**隐状态逐点对齐**;**推理时丢弃 posterior、无任何视觉 rollout**。**无显式子目标**,本质是 **privileged distillation**(posterior 看未来、prior 只凭当下把它对齐出来),因而也须**防 latent collapse**——与 [[JEPA]] 谱系同源。
+- **谱系最低成本端点:纯辅助损失,无世界模型**(PHR-VLA,[arXiv:2608.27609](https://arxiv.org/abs/2608.27609),Texas A&M × Purdue,2026-08-27;**未建源笔记,仅记于此**):在 **SmolVLA 0.45B** 的 action-token 表征上挂一个轻量 future head,训练时用 **MSE** 回归"未来 H 帧视觉 latent 相对当前帧的变化量"(冻结 SigLIP / V-JEPA 2 编码演示里的未来帧),λ=0.02;**推理时整头丢弃,与原 SmolVLA 逐字节相同、零额外延迟**。问题诊断与 Being-H0.7 的"稀疏动作监督 → shortcut mapping"同源,但机制退化到最简:没有 posterior 分支、没有 latent query、没有子目标。LIBERO 84.1→**88.4%**(Long +8.4)、Meta-World 56.7→57.8%(噪声级)、真机 Franka 四拆解任务 63.3→**82.5%**。
+  - **值得记的是五组受控消融("target 结构决定收益,而非有无未来预测目标")**:①**腕部相机 > 双相机 > 第三视角**(88.4 / 88.1 / 86.8——接触区短程变化才是任务相关动力学,第三视角把容量花在背景上);②**patch 级 > 全局池化**(每个视角都成立);③**预测 Δlatent > 预测绝对 latent**(88.4 vs 86.7——不必重建当前帧已有的静态内容);④**专为动力学预测训练的 V-JEPA 2 并不优于 SigLIP**(LIBERO、真机皆输,仅 Meta-World 赢)——编码器选择无定论;⑤λ 0.005→0.02 单调改善。
+  - **⚠️ 打折项**:单基座(0.45B)验证,对 π0.5 量级是否成立无证据;真机增益大头来自单个任务(Task IV 6/30→23/30,而换 JEPA 编码器同任务仅 9/30,同方法两变体差 14 次 ⇒ 真机方差大);"Reasoning" 为命名夸大(无推理步骤,一个回归头);带星号基线抄自他文;作者自陈不做推理时纠错、只塑造表征。
+  - 对本页定位的含义:第三代"训繁推简"到此退化为**"训练时多一个损失项"**——GigaWorld(5B 视频分支)→ Being-H0.7(双分支蒸馏)→ PHR-VLA(单 MSE 头),"训繁"的繁可以很轻。可直接迁作**自家 VLA 微调时加辅助监督的默认配置**:腕部 / patch / Δlatent / SigLIP。
 > 注:LaWAM 突破了本页"WAM = 视频 backbone + 动作"的原定义(见开头"边界澄清")——它是**隐空间 WAM**,把 world 从像素移到 latent。
 
 ## 与其他路线对比
@@ -59,7 +63,7 @@ World-Action Models（WAM）是一类从预训练视频生成 backbone 初始化
 
 ## Open Questions
 
-1. 视频生成质量对动作预测的影响边界在哪里？GigaWorld-Policy 证明推理时可以不要，但训练时仍是关键
+1. 视频生成质量对动作预测的影响边界在哪里？GigaWorld-Policy 证明推理时可以不要，但训练时仍是关键；PHR-VLA 进一步显示训练时也不必生成——对未来 latent 变化量做一次回归即有收益（+4.3 LIBERO），但这只在 0.45B 单基座上验证过
 2. 端到端路线的数据天花板在哪？能靠更多数据持续提升吗？
 3. WAM 和 VLA 最终会收敛到同一个架构吗？
 

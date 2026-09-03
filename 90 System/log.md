@@ -1100,3 +1100,9 @@
   - **事实精度**：RoboTwin 70.7/46.0 补 recipe 警告（差近 30 点，重建后须复核仍在判别区）；Plus-Sensitive 功效改为"2pp 级、≳3.7k 对达 1pp"；RL 三档 BEHAVIOR 加条件（仅当框架接入 OmniGibson/Isaac 栈）；渲染二档 Plus 注明七轴中 Robot/Language 不归因渲染。
   - **结构一致性**：§2 推理优化二档格括号重写；§1 列表断行、一档"数据集特征"覆盖 trace/探针；各方向子标题统一带判据后缀；探针/数值稳定性/图像层指标补【自建】标签；Agent 观察量注明 predicate progress 仅 LIBERO 侧可插桩。
 - 版本升 **v0.2**，头部记修订要点。
+
+## [2026-09-03] | 评估两篇 arXiv：GaussVLA 不入库；PHR-VLA 以折中形式记入 WAM 概念页
+
+- Ethan 给两篇候选论文，要求先评贡献再决定是否入库。
+- **GaussVLA**（[arXiv:2608.24959](https://arxiv.org/abs/2608.24959)，岭南大 × 庆北大，BMVC'26）：把每个 patch 提升为 3D 高斯基元（均值/log 尺度/置信度）做 token，加非自回归"DA-CoT" learned query，Mamba + flow matching。LIBERO 93.5%、Spatial 100%，但 LIBERO-PRO 仅 0.33 低于 OpenVLA；无 VLM 骨干（语言走冻结 CLIP 文本编码器）、"CoT" 与"200M 参数"（不含 >1B 冻结编码器，表 1 自写 1B）均有命名/口径问题。有价值的单点：拼标量深度反而让 LIBERO 78.1→73.3，结构化几何才涨到 90.5；线性探针证实高斯协方差无监督学出表面法向。**决定：不入库**（创新与结果均不够突出）。它本可回应 [[Spatial Intelligence for Embodied AI]] Open Question 1"spatial token 是什么"，若日后该问题需要一个候选答案可回头引用。
+- **PHR-VLA**（[arXiv:2608.27609](https://arxiv.org/abs/2608.27609)，Texas A&M × Purdue）：SmolVLA 上挂一个 future head，训练时 MSE 回归未来 latent 变化量，推理时丢弃。方法相对 [[BeingBeyond - Being-H0.7 a Latent World-Action Model from Egocentric Videos|Being-H0.7]] 无增量，但五组受控消融（腕部 > 第三视角、patch > 池化、Δlatent > 绝对、V-JEPA 2 不优于 SigLIP、λ 敏感）是库里缺的"未来监督信号怎么设计"知识。**决定：不建源笔记，记入 [[World-Action Models]] 第五代一节**作为"训繁推简"谱系的最低成本端点，同时修 Open Question 1；附打折项（单 0.45B 基座、真机增益集中于单任务且两变体差 14/30、"Reasoning" 命名夸大）。index 的 WAM 行同步加注。
