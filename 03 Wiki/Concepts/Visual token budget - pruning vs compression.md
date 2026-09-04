@@ -147,6 +147,7 @@ Cosmos 3 Reasoner 的 patch 为 `32×32×2 = 2048` 像素、按 2 帧一组 temp
 ## Related
 
 - [[VLA quantization]] — 姊妹效率轴（压权重位宽 vs 压序列长度），正交可叠加
+- [[Zandieh et al. - TurboQuant Online Vector Quantization with Near-optimal Distortion Rate|TurboQuant]] — 同打 KV-cache 显存的另一路：本页压 **token 数**，它压 **每 token 的位宽**（在线向量量化，2.5–3.5 bit ≈ 无损）；正交可叠加，且它无需校准、可对流式生成的 token 即时量化
 - [[World-Action Models]] — 三/四/五代的推理效率演进即具身侧的压缩答案
 - [[VLA - Vision-Language-Action Models]] — 输入结构（单帧 vs 历史）决定本页哪一族适用
 - [[Embodied Brain Models]] — 快慢环路分层，决定 EVS 的落点

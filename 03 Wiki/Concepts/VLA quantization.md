@@ -66,6 +66,7 @@ VLA-specific: **EaqVLA** (Jiang et al., arXiv:2505.21567 — encoding-aligned qu
 ## Related
 - [[Model quantization]] — parent topic (routes, LLM/FP8 context)
 - [[Visual token budget - pruning vs compression]] — **姊妹效率轴**：压**输入序列长度**（EVS 剪枝 / π0.7 MEM 压缩）而非权重位宽；两者正交，可叠加
+- [[Zandieh et al. - TurboQuant Online Vector Quantization with Near-optimal Distortion Rate|TurboQuant]] — **第三条效率轴：KV cache 位宽**（在线、数据无关的向量量化，2.5–3.5 bit ≈ 无损，含生成 token）。多视角、带历史的 VLA 上下文让 KV cache 成为被低估的成本项；与本页（权重位宽）、视觉 token 页（序列长度）三者正交、可叠加。也是 Route-2 旋转法的失真率理论来源
 - [[Zheng et al. - DyQ-VLA Temporal-Dynamic-Aware Quantization for Embodied Vision-Language-Action Models]]
 - [[Xu et al. - QVLA Not All Channels Are Equal in Vision-Language-Action Models Quantization]]
 - [[Zhang et al. - QuantVLA Scale-Calibrated Post-Training Quantization for Vision-Language-Action Models]]
